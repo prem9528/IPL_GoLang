@@ -3,12 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	// "strconv"
 	"io/ioutil"
 	"os"
 )
 
-type Users struct {
+type Matches struct {
 	Id             int
 	Season         int
 	City           string
@@ -35,10 +34,16 @@ func main() {
 		fmt.Println(err)
 	}
 	byteValue, _ := ioutil.ReadAll(jsonFile)
-	var users []Users
-	json.Unmarshal(byteValue, &users)
+	var matches []Matches
+	json.Unmarshal(byteValue, &matches)
+	foo(matches)
+	
+}
+
+func foo(matches []Matches){
+
 	m := make(map[int]int)
-	for _, each := range users {
+	for _, each := range matches {
 		if m[each.Season] != 0{
 			m[each.Season] += 1
 		}else{
@@ -48,19 +53,5 @@ func main() {
 	}
 	
 	fmt.Println(m)
-	// jsondata, err := json.Marshal(m)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	os.Exit(1)
-	// }
-	
-	// jsonFile2, err := os.Create("../data/matches_per_year.json")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-	// defer jsonFile2.Close()
-
-	// jsonFile.Write(jsondata)
-	// jsonFile.Close()
 
 }
