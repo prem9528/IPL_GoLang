@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"sort"
 )
 
 type Matches struct {
@@ -69,13 +70,15 @@ func main() {
 	var matches []Matches
 	json.Unmarshal(byteValue, &matches)
 
-	// calling functions
-	bar(matches)
-	foo(matches)
+	//// calling functions
+	// total_matches(matches)
+	// matches_per_year(matches)
+	// Extra_runs_2016(matches, deliveries)
+	economical_bowlers_2015(matches, deliveries)
 
 }
 
-func foo(matches []Matches) {
+func total_matches(matches []Matches) {
 
 	m := make(map[int]int)
 	for _, each := range matches {
@@ -105,7 +108,7 @@ func foo(matches []Matches) {
 
 }
 
-func bar(matches []Matches) {
+func matches_per_year(matches []Matches) {
 	m := make(map[int]map[string]int)
 	for _, each := range matches {
 		if m[each.Season] != nil {
@@ -154,4 +157,113 @@ func match(years int) map[string]int {
 	}
 	return mp
 
+}
+
+func Extra_runs_2016(matches []Matches, deliveries []Deliveries) {
+	var match2016 []int
+	for _, each := range matches {
+		if each.Season == 2016 {
+			match2016 = append(match2016, each.Id)
+		}
+	}
+
+	m := make(map[string]int)
+	for _, each := range deliveries {
+		for _, val := range match2016 {
+			if val == each.Match_id {
+				if m[each.Bowling_team] != 0 {
+					m[each.Bowling_team] += each.Extra_runs
+				} else {
+					m[each.Bowling_team] = each.Extra_runs
+				}
+			}
+		}
+	}
+	fmt.Println(m)
+	jsondata, err := json.Marshal(m)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	jsonFile, err := os.Create("../data/extra_runs_2016.json")
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer jsonFile.Close()
+
+	jsonFile.Write(jsondata)
+	jsonFile.Close()
+}
+
+func economical_bowlers_2015(matches []Matches, deliveries []Deliveries) {
+	var match2015 []int
+	for _, each := range matches {
+		if each.Season == 2015 {
+			match2015 = append(match2015, each.Id)
+		}
+	}
+	m := make(map[string]int)
+	for _, each := range deliveries {
+		for _, val := range match2015 {
+			if val == each.Match_id {
+				if m[each.Bowler] != 0 {
+					m[each.Bowler] += each.Total_runs
+				} else {
+					m[each.Bowler] = each.Total_runs
+				}
+			}
+		}
+	}
+	var overs = func(bowler string) int {
+		var balls int
+		for _, each := range deliveries {
+			for _, val := range match2015 {
+				if val == each.Match_id {
+					if each.Bowler == bowler {
+						balls += 1
+					}
+				}
+			}
+		}
+		return balls / 6
+	}
+
+	var average = func(m map[string]int) map[string]int {
+		for key, each := range m {
+			m[key] = (each / overs(key))
+		}
+		return m
+	}
+	average(m)
+	for key, value := range m {
+		if value > 7 {
+			delete(m, key)
+		}
+	}
+	keys := make([]string, 0, len(m))
+	for key := range m {
+		keys = append(keys, key)
+	}
+	sort.Slice(keys, func(i, j int) bool { return m[keys[i]] < m[keys[j]] })
+
+	mp := map[string]int{}
+	for i := 0; i < 10; i++ {
+		mp[keys[i]] = m[keys[i]]
+
+	}
+	jsondata, err := json.Marshal(mp)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	jsonFile, err := os.Create("../data/economic_bowlers.json")
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer jsonFile.Close()
+
+	jsonFile.Write(jsondata)
+	jsonFile.Close()
 }
