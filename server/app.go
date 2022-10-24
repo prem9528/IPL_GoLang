@@ -60,105 +60,80 @@ func main() {
 	byteValue1, _ := ioutil.ReadAll(jsonFile1)
 	var deliveries []Deliveries
 	json.Unmarshal(byteValue1, &deliveries)
-	// fmt.Println(deliveries)
 	jsonFile, err := os.Open("../data/matches.json")
 	if err != nil {
 		fmt.Println(err)
 	}
+
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 	var matches []Matches
 	json.Unmarshal(byteValue, &matches)
 
+	// calling functions
 	bar(matches)
-	// foo(matches)
+	foo(matches)
 
 }
 
-// func foo(matches []Matches) {
+func foo(matches []Matches) {
 
-// 	m := make(map[int]int)
-// 	for _, each := range matches {
-// 		if m[each.Season] != 0 {
-// 			m[each.Season] += 1
-// 		} else {
-// 			m[each.Season] = 1
-// 		}
-// 		delete(m, 0)
-// 	}
+	m := make(map[int]int)
+	for _, each := range matches {
+		if m[each.Season] != 0 {
+			m[each.Season] += 1
+		} else {
+			m[each.Season] = 1
+		}
+		delete(m, 0)
+	}
 
-// 	fmt.Println(m)
+	fmt.Println(m)
+	jsondata, err := json.Marshal(m)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 
-// }
+	jsonFile, err := os.Create("../data/matches_per_year.json")
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer jsonFile.Close()
 
-// func bar(matches []Matches) {
-// 	// mp := make(map[string]int)
-// 	// for _, each := range matches{
-// 	// 	// if each.Season <2022{
-// 	// 		if mp[each.Winner] !=0{
-// 	// 			mp[each.Winner] += 1
-// 	// 		} else {
-// 	// 			mp[each.Winner] = 1
-// 	// 		// }
-// 	// 	}
-// 	// 	delete(mp,"")
-// 	// }
-// 	// fmt.Println(mp)
-// 	mp := make(map[string]int)
-// 	m := make(map[int]map[string]int)
-// 	for _, each := range matches {
-// 		if m[each.Season] != nil {
-// 			continue
-// 			} else {
-// 				// for i := range matches{
-// 					// 		if matches[i].Season == 2008{
-// 						// if m[each.Season][each.Winner] != 0 {
-// 							// m[each.Season][each.Winner] += 1
-// 							// m[each.Season] = mp
-// 							// } else {
-// 								// m[each.Season][each.Winner] = 1
-// 								// m[each.Season] = mp
-// 								// }
-// 								m[each.Season] = mp
-// 								// 	}
-// 							}
-// 							if each.Season != m[each.Season] {
-// 								if mp[each.Winner] !=0{
-// 									mp[each.Winner] +=1
-// 								}else{
-// 									mp[each.Winner] =1
-// 								}
-// 							}
-// 		// }
-// 		// fmt.Println(reflect.TypeOf(each.Season))
-// 		// if each.Season {
-// 		// 	if mp[each.Winner] != 0 {
-// 		// 		mp[each.Winner] += 1
-// 		// 	} else {
-// 		// 		mp[each.Winner] = 1
-// 		// 	}
-// 		// }
-// 		// delete(m, 0)
-// 	}
-// 	// fmt.Println(m)
-// 	fmt.Println(mp)
+	jsonFile.Write(jsondata)
+	jsonFile.Close()
 
-// }
+}
 
 func bar(matches []Matches) {
 	m := make(map[int]map[string]int)
 	for _, each := range matches {
-		// s1:= 
-		if m[each.Season] != nil{
+		if m[each.Season] != nil {
 			continue
-		}else{
+		} else {
 			m[each.Season] = match(each.Season)
 		}
 	}
+	delete(m, 0)
 	fmt.Println(m)
+	jsondata, err := json.Marshal(m)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	jsonFile, err := os.Create("../data/matches_won_per_year.json")
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer jsonFile.Close()
+
+	jsonFile.Write(jsondata)
+	jsonFile.Close()
 
 }
 
-func match(years  int) map[string]int{
+func match(years int) map[string]int {
 	jsonFile, err := os.Open("../data/matches.json")
 	if err != nil {
 		fmt.Println(err)
@@ -166,19 +141,17 @@ func match(years  int) map[string]int{
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 	var matches []Matches
 	json.Unmarshal(byteValue, &matches)
-	// fmt.Println(matches)
 
 	mp := make(map[string]int)
-	for _, each := range matches{
-		if each.Season == years{
-			if mp[each.Winner] != 0{
-			mp[each.Winner] +=1 
+	for _, each := range matches {
+		if each.Season == years {
+			if mp[each.Winner] != 0 {
+				mp[each.Winner] += 1
 			} else {
 				mp[each.Winner] = 1
 			}
 		}
 	}
 	return mp
-	// fmt.Println(mp)
 
 }
